@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
+    <script src="ajax/jquery-3.7.1.min.js"></script>
+    <style>
+      .container {
+        width: 60%;
+        padding: 20px;
+      }
+      th,
+      td {
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 style="text-align: center">Todo List</h1>
+      <div id="form_edit">
+        <form>
+          <input
+            style="
+              border-radius: 5px;
+              border: 1px solid rgb(139, 138, 138);
+              outline: none;
+              padding: 2px;
+            "
+            id="todo"
+            type="text"
+          />
+          <select
+            id="point"
+            style="
+              outline: none;
+              width: 100px;
+              padding: 3px;
+              border-radius: 5px;
+              border: 1px solid rgb(165, 164, 164);
+            "
+          >
+            <option value="">Point</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+          </select>
+          <select
+            id="status"
+            style="
+              outline: none;
+              width: 100px;
+              padding: 3px;
+              border-radius: 5px;
+              border: 1px solid rgb(165, 164, 164);
+            "
+          >
+            <option value="">status</option>
+            <option value="true">complete</option>
+            <option value="false">unfinished</option>
+          </select>
+          <button id="btn" type="button" class="btn btn-primary">Create</button>
+        </form>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">STT</th>
+            <th scope="col">Todo</th>
+            <th scope="col">Point</th>
+            <th scope="col">status</th>
+            <th scope="col" colspan="2">Action</th>
+          </tr>
+        </thead>
+        <tbody id="body">
+          <!-- <tr>
+            <th scope="row">1</th>
+            <td>Todo</td>
+            <td>Point</td>
+            <td>status</td>
+            <td>
+              <button id="edit" type="button" class="btn btn-success">
+                Edit
+              </button>
+            </td>
+            <td>
+              <button id="delete" type="button" class="btn btn-danger">
+                Delete
+              </button>
+            </td>
+          </tr> -->
+        </tbody>
+      </table>
+    </div>
+    <script>
+      const getData = () => {
+        $.ajax({
+          method: "GET",
+          url: "http://localhost:8080/todolist",
+          dataType: "JSON",
+          success: function (c) {
+            let _html = ``;
+            let stt = 0;
+            c.forEach((element) => {
+              _html += `          <tr>
+         <th scope="row">${++stt}</th>
+         <td>${element.todolistName}</td>
+         <td>${element.point}</td>
+         <td>${element.status}</td>
+         <td>
+           <button onclick="editItem(${
+             element.id
+           })" type="button" class="btn btn-success">
+             Edit
+           </button>
+         </td>
+         <td>
+           <button onclick="deleteItem(${
+             element.id
+           })" type="button" class="btn btn-danger">
+             Delete
+           </button>
+         </td>
+       </tr>`;
+            });
+            $("#body").html(_html);
+          },
+          error: (err) => {
+            console.log(err);
+          },
+        });
+      };
+      getData();
+    </script>
+    <script>
+      $("#btn").click(function (e) {
+        e.preventDefault();
+        let _todoName = $("#todo").val();
+        let _point = $("#point").val();
+        let _status = $("#status").val();
+        let _data = {
+          todolistName: _todoName,
+          point: _point,
+          status: _status,
+        };
+        _data = JSON.stringify(_data);
+        $.ajax({
+          method: "POST",
+          url: "http://localhost:8080/todolist",
+          dataType: "JSON",
+          contentType: "application/json",
+          data: _data,
+          success: (response) => {
+            alert("Thêm mới thành công!");
+            (_todoName = null), (_point = null), (_status = null), getData();
+          },
+          error: (err) => {
+            console.log(err);
+          },
+        });
+      });
+    </script>
+    <script>
+      function deleteItem(id) {
+        $.ajax({
+          method: "DELETE",
+          url: `http://localhost:8080/todolist/${id}`,
+          dataType: "JSON",
+          success: (response) => {
+            alert("xóa thành công!");
+            console.log(response);
+            getData();
+          },
+          error: (err) => {
+            console.log(err);
+          },
+        });
+      }
+    </script>
+    <script>
+      function editItem(id) {
+        $.ajax({
+          method: "GET",
+          url: `http://localhost:8080/todolist/${id}`,
+          dataType: "JSON",
+          success: (response) => {
+            input_html = `
+            <form>
+              <input type="hidden" id="idUpdate" value="${response.id}">
+              <input
+                style="
+                  border-radius: 5px;
+                  border: 1px solid rgb(139, 138, 138);
+                  outline: none;
+                  padding: 2px;
+                "
+                id="todoUpdate"
+                type="text"
+                value="${response.todolistName}"
+              />
+              <select
+                id="pointUpdate"
+                style="
+                  outline: none;
+                  width: 100px;
+                  padding: 3px;
+                  border-radius: 5px;
+                  border: 1px solid rgb(165, 164, 164);
+                "
+                value="${response.point}"
+              >
+                <option value="">Point</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+              </select>
+              <select
+                id="statusUpdate"
+                style="
+                  outline: none;
+                  width: 100px;
+                  padding: 3px;
+                  border-radius: 5px;
+                  border: 1px solid rgb(165, 164, 164);
+                "
+                value="${response.status}"
+              >
+                <option value="">status</option>
+                <option value="true">complete</option>
+                <option value="false">unfinished</option>
+              </select>
+              <button id="btn_edit" type="button" class="btn btn-primary">Update</button>
+              </form>`;
+            $("#form_edit").html(input_html);
+            $("#btn").off("click");
+          },
+          error: (err) => {
+            console.log(err);
+          },
+        });
+      }
+    </script>
+    <script>
+      $("#btn_edit").click(function (e) {
+        e.preventDefault();
+        console.log(111);
+        let _id = $("#idUpdate").val();
+        let _todoName = $("#todoUpdate").val();
+        let _point = $("#pointUpdate").val();
+        let _status = $("#statusUpdate").val();
+        let _data = {
+          todolistName: _todoName,
+          point: _point,
+          status: _status,
+        };
+        _data = JSON.stringify(_data);
+        $.ajax({
+          method: "PUT",
+          url: `http://localhost:8080/todolist/${_id}`,
+          dataType: "JSON",
+          contentType: "application/json",
+          data: _data,
+          success: (response) => {
+            alert("Cập nhật thành công!");
+            (_todoName = null), (_point = null), (_status = null), getData();
+          },
+          error: (err) => {
+            console.log(err);
+          },
+        });
+      });
+    </script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>
